@@ -127,15 +127,13 @@ void AShooterCharacter::MoveRight(float AxisValue)
 
 void AShooterCharacter::HandleRecoilImpact(float DeltaTime)
 {
-	float VerticalRecoilDiff = -TargetRecoilImpact.Y - (-TargetRecoilImpact.Y - DeltaTime * RecoilHandlingValue);
-
-	float HorizontalRecoilDirection = FMath::Sign(TargetRecoilImpact.X);
-	float HorizontalRecoilDiff = FMath::Abs(TargetRecoilImpact.X) - (FMath::Abs(TargetRecoilImpact.X) - DeltaTime * RecoilHandlingValue);
+	float VerticalRecoilDiff = -TargetRecoilImpact.Y - FMath::Lerp(-TargetRecoilImpact.Y, 0.0F, DeltaTime * RecoilHandlingValue);
+	float HorizontalRecoilDiff = TargetRecoilImpact.X - FMath::Lerp(TargetRecoilImpact.X, 0.0F, DeltaTime * RecoilHandlingValue);
 	
 	AddControllerPitchInput(VerticalRecoilDiff);
-	AddControllerYawInput(HorizontalRecoilDiff * -HorizontalRecoilDirection);
+	AddControllerYawInput(-HorizontalRecoilDiff);
 	
 	TargetRecoilImpact.Y += VerticalRecoilDiff;
-	TargetRecoilImpact.X += HorizontalRecoilDiff * -HorizontalRecoilDirection;
+	TargetRecoilImpact.X -= HorizontalRecoilDiff;
 }
 
