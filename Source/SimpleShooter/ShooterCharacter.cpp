@@ -37,11 +37,28 @@ float AShooterCharacter::GetHealthPercent() const
 	return Health / MaxHealth;
 }
 
+float AShooterCharacter::GetRecoilImpactAmount() const
+{
+	return TargetRecoilImpact.Length();
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	float MouseDeltaX, MouseDeltaY;
+	GetWorld()->GetFirstPlayerController()->GetInputMouseDelta(MouseDeltaX, MouseDeltaY);
+	
+	if(MouseDeltaX > 0.1 || MouseDeltaY > 0.1 || GetRecoilImpactAmount() <= 0.1f)
+	{
+		TargetRecoilImpact = FVector2D::ZeroVector;
+	}
 
+	if(GetRecoilImpactAmount() > 0.1f)
+	{
+		HandleRecoilImpact(DeltaTime);
+	}
 }
 
 // Called to bind functionality to input
@@ -50,11 +67,11 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &AShooterCharacter::MoveForward);
-	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AShooterCharacter::MoveRight);
+	
+	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis(TEXT("LookUpRate"), this, &AShooterCharacter::LookUpRate);
-	PlayerInputComponent->BindAxis(TEXT("LookRightRate"), this, &AShooterCharacter::LookRightRate);
+	
 	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
 }
@@ -65,8 +82,6 @@ float AShooterCharacter::TakeDamage(float DamageAmount, struct FDamageEvent cons
 	DamageToApply = FMath::Min(Health, DamageToApply);
 
 	SetHealth(Health - DamageToApply);
-	
-	UE_LOG(LogTemp, Warning, TEXT("Health left %f"), Health);
 
 	if (IsDead())
 	{
@@ -81,6 +96,17 @@ float AShooterCharacter::TakeDamage(float DamageAmount, struct FDamageEvent cons
 	}
 
 	return DamageToApply;
+}
+
+void AShooterCharacter::Shoot() 
+{
+	FVector2D RecoilImpact = Gun->PullTrigger();
+
+	TargetRecoilImpact.X = RecoilImpact.X;
+	TargetRecoilImpact.Y = RecoilImpact.Y;
+	
+	AddControllerPitchInput(TargetRecoilImpact.Y);
+	AddControllerYawInput(TargetRecoilImpact.X);
 }
 
 void AShooterCharacter::SetHealth(float NewHealth)
@@ -99,23 +125,17 @@ void AShooterCharacter::MoveRight(float AxisValue)
 	AddMovementInput(GetActorRightVector() * AxisValue);
 }
 
-void AShooterCharacter::LookUpRate(float AxisValue) 
+void AShooterCharacter::HandleRecoilImpact(float DeltaTime)
 {
-	AddControllerPitchInput(AxisValue * RotationRate * GetWorld()->GetDeltaSeconds());
-}
+	float VerticalRecoilDiff = -TargetRecoilImpact.Y - (-TargetRecoilImpact.Y - DeltaTime * RecoilHandlingValue);
 
-void AShooterCharacter::LookRightRate(float AxisValue) 
-{
-	AddControllerYawInput(AxisValue * RotationRate * GetWorld()->GetDeltaSeconds());
+	float HorizontalRecoilDirection = FMath::Sign(TargetRecoilImpact.X);
+	float HorizontalRecoilDiff = FMath::Abs(TargetRecoilImpact.X) - (FMath::Abs(TargetRecoilImpact.X) - DeltaTime * RecoilHandlingValue);
+	
+	AddControllerPitchInput(VerticalRecoilDiff);
+	AddControllerYawInput(HorizontalRecoilDiff * -HorizontalRecoilDirection);
+	
+	TargetRecoilImpact.Y += VerticalRecoilDiff;
+	TargetRecoilImpact.X += HorizontalRecoilDiff * -HorizontalRecoilDirection;
 }
-
-void AShooterCharacter::Shoot() 
-{
-	Gun->PullTrigger();
-}
-
-// void AShooterCharacter::LookUp(float AxisValue) 
-// {
-// 	AddControllerPitchInput(AxisValue);	
-// }
 

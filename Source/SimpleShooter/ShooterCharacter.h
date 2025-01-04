@@ -33,6 +33,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	float GetHealthPercent() const;
 
+	UFUNCTION(BlueprintPure)
+	float GetRecoilImpactAmount() const;
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -47,11 +50,12 @@ private:
 	void SetHealth(float NewHealth);
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
-	void LookUpRate(float AxisValue);
-	void LookRightRate(float AxisValue);
 
-	UPROPERTY(EditAnywhere)
-	float RotationRate = 10;
+	void HandleRecoilImpact(float DeltaTime);
+
+	UPROPERTY(EditDefaultsOnly)
+	float RecoilHandlingValue = 10;
+	
 	UPROPERTY(EditDefaultsOnly)
 	float MaxHealth = 100;
 
@@ -63,4 +67,9 @@ private:
 
 	UPROPERTY()
 	AGun* Gun;
+	
+	UPROPERTY()
+	FVector2D TargetRecoilImpact;
+	
+	USkeletalMeshComponent* SkeletalMesh;
 };

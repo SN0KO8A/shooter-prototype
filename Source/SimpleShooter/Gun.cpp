@@ -22,7 +22,7 @@ AGun::AGun()
 
 }
 
-void AGun::PullTrigger() 
+FVector2D AGun::PullTrigger() 
 {
 	UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, Mesh, TEXT("MuzzleFlashSocket"));
 	UGameplayStatics::SpawnSoundAttached(MuzzleSound, Mesh, TEXT("MuzzleFlashSocket"));
@@ -44,20 +44,11 @@ void AGun::PullTrigger()
 		}
 	}
 
-}
+	FVector2D NewRecoil = FVector2D::ZeroVector;
+	NewRecoil.Y = -FMath::RandRange(VerticalRecoil  * 0.75f, VerticalRecoil);
+	NewRecoil.X = FMath::RandRange(-HorizontalRecoil,HorizontalRecoil);
 
-// Called when the game starts or when spawned
-void AGun::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void AGun::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	return NewRecoil;
 }
 
 bool AGun::GunTrace(FHitResult &Hit, FVector& ShotDirection) 

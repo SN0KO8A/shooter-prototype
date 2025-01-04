@@ -15,15 +15,7 @@ public:
 	// Sets default values for this actor's properties
 	AGun();
 
-	void PullTrigger();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	FVector2D PullTrigger();
 
 private:
 	UPROPERTY(VisibleAnywhere)
@@ -49,6 +41,12 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float Damage = 10;
+
+	UPROPERTY(EditAnywhere)
+	float VerticalRecoil = 1.0;
+
+	UPROPERTY(EditAnywhere)
+	float HorizontalRecoil = 1.0;
 
 	bool GunTrace(FHitResult &Hit, FVector& ShotDirection);
 
