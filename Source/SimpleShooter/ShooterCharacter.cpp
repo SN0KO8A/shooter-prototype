@@ -19,7 +19,7 @@ void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Health = MaxHealth;
+	SetHealth(MaxHealth);
 
 	Gun = GetWorld()->SpawnActor<AGun>(GunClass);
 	GetMesh()->HideBoneByName(TEXT("weapon_r"), EPhysBodyOp::PBO_None);
@@ -63,7 +63,9 @@ float AShooterCharacter::TakeDamage(float DamageAmount, struct FDamageEvent cons
 {
 	float DamageToApply = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	DamageToApply = FMath::Min(Health, DamageToApply);
-	Health -= DamageToApply;
+
+	SetHealth(Health - DamageToApply);
+	
 	UE_LOG(LogTemp, Warning, TEXT("Health left %f"), Health);
 
 	if (IsDead())
@@ -79,6 +81,12 @@ float AShooterCharacter::TakeDamage(float DamageAmount, struct FDamageEvent cons
 	}
 
 	return DamageToApply;
+}
+
+void AShooterCharacter::SetHealth(float NewHealth)
+{
+	Health = NewHealth;
+	OnHealthChanged.Broadcast(GetHealthPercent());
 }
 
 void AShooterCharacter::MoveForward(float AxisValue) 

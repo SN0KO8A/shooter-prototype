@@ -33,5 +33,6 @@ private:
 
 	FTimerHandle RestartTimer;
 
+	UPROPERTY(VisibleAnywhere)
 	UUserWidget *HUD;
 };

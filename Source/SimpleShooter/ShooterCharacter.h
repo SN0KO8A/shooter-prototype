@@ -8,6 +8,8 @@
 
 class AGun;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float, NewPercent);
+
 UCLASS()
 class SIMPLESHOOTER_API AShooterCharacter : public ACharacter
 {
@@ -21,7 +23,10 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnHealthChanged OnHealthChanged;
+	
 	UFUNCTION(BlueprintPure)
 	bool IsDead() const;
 
@@ -39,6 +44,7 @@ public:
 	void Shoot();
 
 private:
+	void SetHealth(float NewHealth);
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
 	void LookUpRate(float AxisValue);
