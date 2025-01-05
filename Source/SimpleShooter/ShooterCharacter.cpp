@@ -42,6 +42,11 @@ float AShooterCharacter::GetRecoilImpactAmount() const
 	return TargetRecoilImpact.Length();
 }
 
+float AShooterCharacter::GetRecoilHandleValue() const
+{
+	return RecoilHandlingValue;
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -107,6 +112,8 @@ void AShooterCharacter::Shoot()
 	
 	AddControllerPitchInput(TargetRecoilImpact.Y);
 	AddControllerYawInput(TargetRecoilImpact.X);
+
+	OnShoot.Broadcast(RecoilImpact);
 }
 
 void AShooterCharacter::SetHealth(float NewHealth)

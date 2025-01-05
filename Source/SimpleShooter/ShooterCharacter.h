@@ -9,6 +9,7 @@
 class AGun;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float, NewPercent);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShoot, FVector2D, NewRecoilImpact);
 
 UCLASS()
 class SIMPLESHOOTER_API AShooterCharacter : public ACharacter
@@ -26,6 +27,9 @@ protected:
 public:
 	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnHealthChanged OnHealthChanged;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnShoot OnShoot;
 	
 	UFUNCTION(BlueprintPure)
 	bool IsDead() const;
@@ -35,6 +39,9 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	float GetRecoilImpactAmount() const;
+	
+	UFUNCTION(BlueprintPure)
+	float GetRecoilHandleValue() const;
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
