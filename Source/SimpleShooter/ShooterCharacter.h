@@ -6,10 +6,13 @@
 #include "GameFramework/Character.h"
 #include "ShooterCharacter.generated.h"
 
+class USpringArmComponent;
+class UShooterCameraComponent;
 class AGun;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float, NewPercent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShoot, FVector2D, NewRecoilImpact);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnToggleAimMode, bool, IsAimMode);
 
 UCLASS()
 class SIMPLESHOOTER_API AShooterCharacter : public ACharacter
@@ -30,6 +33,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnShoot OnShoot;
+
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnToggleAimMode OnToggleAimMode;
 	
 	UFUNCTION(BlueprintPure)
 	bool IsDead() const;
@@ -52,6 +58,7 @@ public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const &DamageEvent, class AController *EventInstigator, AActor *DamageCauser) override;
 	
 	void Shoot();
+	void ToggleAimMode();
 
 private:
 	void SetHealth(float NewHealth);
@@ -74,9 +81,13 @@ private:
 
 	UPROPERTY()
 	AGun* Gun;
+
+	UPROPERTY(EditDefaultsOnly)
+	USpringArmComponent* SpringArm;
+
+	UPROPERTY(EditDefaultsOnly)
+	UShooterCameraComponent* ShooterCameraComponent;
 	
-	UPROPERTY()
 	FVector2D TargetRecoilImpact;
-	
-	USkeletalMeshComponent* SkeletalMesh;
+	bool IsAimMode = false;
 };

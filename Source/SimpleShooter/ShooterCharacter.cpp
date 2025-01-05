@@ -3,15 +3,22 @@
 
 #include "ShooterCharacter.h"
 #include "Gun.h"
+#include "ShooterCameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "SimpleShooterGameModeBase.h"
+#include "GameFramework/SpringArmComponent.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
+	SpringArm->SetupAttachment(RootComponent);
 
+	ShooterCameraComponent = CreateDefaultSubobject<UShooterCameraComponent>(TEXT("Shooter Camera Component"));
+	ShooterCameraComponent->SetupAttachment(SpringArm);
 }
 
 // Called when the game starts or when spawned
@@ -73,12 +80,13 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &AShooterCharacter::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AShooterCharacter::MoveRight);
+	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	
 	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis(TEXT("LookRight"), this, &APawn::AddControllerYawInput);
 	
-	PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
+	PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Pressed, this, &AShooterCharacter::ToggleAimMode);
 }
 
 float AShooterCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const &DamageEvent, class AController *EventInstigator, AActor *DamageCauser) 
@@ -105,15 +113,30 @@ float AShooterCharacter::TakeDamage(float DamageAmount, struct FDamageEvent cons
 
 void AShooterCharacter::Shoot() 
 {
+	if(ShooterCameraComponent->IsCameraInTransition())
+		return;
+	
 	FVector2D RecoilImpact = Gun->PullTrigger();
 
-	TargetRecoilImpact.X = RecoilImpact.X;
-	TargetRecoilImpact.Y = RecoilImpact.Y;
+	TargetRecoilImpact.X = IsAimMode ? RecoilImpact.X * 0.25f : RecoilImpact.X;
+	TargetRecoilImpact.Y = IsAimMode ? RecoilImpact.Y * 0.25f : RecoilImpact.Y;
 	
 	AddControllerPitchInput(TargetRecoilImpact.Y);
 	AddControllerYawInput(TargetRecoilImpact.X);
 
 	OnShoot.Broadcast(RecoilImpact);
+}
+
+void AShooterCharacter::ToggleAimMode()
+{
+	IsAimMode = !IsAimMode;
+
+	if(IsAimMode)
+		ShooterCameraComponent->TurnOnAimMode();
+	else
+		ShooterCameraComponent->TurnOnDefaultMode();
+
+	OnToggleAimMode.Broadcast(IsAimMode);
 }
 
 void AShooterCharacter::SetHealth(float NewHealth)
