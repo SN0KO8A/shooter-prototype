@@ -61,9 +61,11 @@ FVector2D AGun::PullTrigger()
 		AActor* HitActor = Hit.GetActor();
 		if (HitActor != nullptr)
 		{
-			FPointDamageEvent DamageEvent(Damage, Hit, ShotDirection, nullptr);
+			float NewRandomDamage = FMath::RandRange(Damage * 0.5f, Damage * 1.5f);
+			
+			FPointDamageEvent DamageEvent(NewRandomDamage, Hit, ShotDirection, nullptr);
 			AController *OwnerController = GetOwnerController();
-			HitActor->TakeDamage(Damage, DamageEvent, OwnerController, this);
+			HitActor->TakeDamage(NewRandomDamage, DamageEvent, OwnerController, this);
 		}
 	}
 
