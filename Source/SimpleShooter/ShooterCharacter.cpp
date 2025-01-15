@@ -26,12 +26,15 @@ void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetHealth(MaxHealth);
-
 	Gun = GetWorld()->SpawnActor<AGun>(GunClass);
-	GetMesh()->HideBoneByName(TEXT("weapon_r"), EPhysBodyOp::PBO_None);
 	Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocket"));
 	Gun->SetOwner(this);
+
+	GetMesh()->HideBoneByName(TEXT("weapon_r"), EPhysBodyOp::PBO_None);
+
+	SetHealth(MaxHealth);
+
+	OnInitialized.Broadcast();
 }
 
 bool AShooterCharacter::IsDead() const
@@ -42,6 +45,12 @@ bool AShooterCharacter::IsDead() const
 float AShooterCharacter::GetHealthPercent() const
 {
 	return Health / MaxHealth;
+}
+
+AGun* AShooterCharacter::GetCurrentGun() const
+{
+	UE_LOG(LogTemp, Warning, TEXT("IS GUN A NULL? - %hs"), Gun ? "false" : "true");
+	return Gun;
 }
 
 float AShooterCharacter::GetRecoilImpactAmount() const
@@ -87,6 +96,7 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	
 	PlayerInputComponent->BindAction(TEXT("Shoot"), EInputEvent::IE_Pressed, this, &AShooterCharacter::Shoot);
 	PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Pressed, this, &AShooterCharacter::ToggleAimMode);
+	PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AShooterCharacter::ReloadCurrentGun);
 }
 
 float AShooterCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const &DamageEvent, class AController *EventInstigator, AActor *DamageCauser) 
@@ -125,6 +135,11 @@ void AShooterCharacter::Shoot()
 	AddControllerYawInput(TargetRecoilImpact.X);
 
 	OnShoot.Broadcast(RecoilImpact);
+}
+
+void AShooterCharacter::ReloadCurrentGun()
+{
+	Gun->Reload();
 }
 
 void AShooterCharacter::ToggleAimMode()

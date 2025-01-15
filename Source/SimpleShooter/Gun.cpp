@@ -20,10 +20,33 @@ AGun::AGun()
 	Mesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
 	Mesh->SetupAttachment(Root);
 
+	CurrentAmmo = MaxAmmo;
+}
+
+void AGun::Reload()
+{
+	if (IsReloading || CurrentAmmo >= MaxAmmo)
+		return;
+	
+	GetWorldTimerManager().SetTimer(ReloadTimer, this, &AGun::OnReloadProcessDone, ReloadTime);
+	IsReloading = true;
+
+	OnReload.Broadcast();
 }
 
 FVector2D AGun::PullTrigger() 
 {
+	if (IsReloading)
+	{
+		return FVector2D(0,0);
+	}
+
+	if (CurrentAmmo <= 0)
+	{
+		Reload();
+		return FVector2D(0,0);
+	}
+	
 	UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, Mesh, TEXT("MuzzleFlashSocket"));
 	UGameplayStatics::SpawnSoundAttached(MuzzleSound, Mesh, TEXT("MuzzleFlashSocket"));
 
@@ -48,7 +71,30 @@ FVector2D AGun::PullTrigger()
 	NewRecoil.Y = -FMath::RandRange(VerticalRecoil  * 0.75f, VerticalRecoil);
 	NewRecoil.X = FMath::RandRange(-HorizontalRecoil,HorizontalRecoil);
 
+
+	AController* Controller = GetOwnerController();
+
+	if (Controller != nullptr && Cast<APlayerController>(Controller))
+		CurrentAmmo--;
+
+	OnShot.Broadcast();
+	
 	return NewRecoil;
+}
+
+int AGun::GetCurrentAmmo() const
+{
+	return CurrentAmmo;
+}
+
+int AGun::GetMaxAmmo() const
+{
+	return MaxAmmo;
+}
+
+float AGun::GetReloadTime() const
+{
+	return ReloadTime;
 }
 
 bool AGun::GunTrace(FHitResult &Hit, FVector& ShotDirection) 
@@ -67,6 +113,14 @@ bool AGun::GunTrace(FHitResult &Hit, FVector& ShotDirection)
 	Params.AddIgnoredActor(this);
 	Params.AddIgnoredActor(GetOwner());
 	return GetWorld()->LineTraceSingleByChannel(Hit, Location, End, ECollisionChannel::ECC_GameTraceChannel1, Params);
+}
+
+void AGun::OnReloadProcessDone()
+{
+	CurrentAmmo = MaxAmmo;
+	IsReloading = false;
+
+	OnReloadDone.Broadcast();
 }
 
 AController* AGun::GetOwnerController() const

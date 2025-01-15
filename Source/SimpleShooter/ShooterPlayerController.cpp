@@ -2,17 +2,34 @@
 
 
 #include "ShooterPlayerController.h"
+
+#include "ShooterCharacter.h"
 #include "TimerManager.h"
 #include "Blueprint/UserWidget.h"
+
+void AShooterPlayerController::InitHUD()
+{
+    HUD = CreateWidget(this, HUDClass);
+    if (HUD != nullptr)
+    {
+        HUD->AddToViewport();
+    }
+}
 
 void AShooterPlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    HUD = CreateWidget(this, HUDClass);
-    if (HUD != nullptr)
+    AShooterCharacter* ShooterCharacter = Cast<AShooterCharacter>(GetPawn());
+
+    if (ShooterCharacter->IsDead())
     {
-        HUD->AddToViewport();
+        ShooterCharacter->OnInitialized.AddUObject(this, &AShooterPlayerController::InitHUD);
+    }
+
+    else
+    {
+        InitHUD();
     }
 }
 

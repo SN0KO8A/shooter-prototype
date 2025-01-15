@@ -15,6 +15,7 @@ class SIMPLESHOOTER_API AShooterPlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	virtual void GameHasEnded(class AActor *EndGameFocus = nullptr, bool bIsWinner = false) override;
+	void InitHUD();
 
 protected:
 	// Called when the game starts or when spawned

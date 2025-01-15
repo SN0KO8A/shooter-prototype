@@ -10,6 +10,8 @@ class USpringArmComponent;
 class UShooterCameraComponent;
 class AGun;
 
+DECLARE_MULTICAST_DELEGATE(FOnInitialized)
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float, NewPercent);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnShoot, FVector2D, NewRecoilImpact);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnToggleAimMode, bool, IsAimMode);
@@ -28,6 +30,9 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	
+	FOnInitialized OnInitialized;
+	
 	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnHealthChanged OnHealthChanged;
 
@@ -44,6 +49,9 @@ public:
 	float GetHealthPercent() const;
 
 	UFUNCTION(BlueprintPure)
+	AGun* GetCurrentGun() const;
+
+	UFUNCTION(BlueprintPure)
 	float GetRecoilImpactAmount() const;
 	
 	UFUNCTION(BlueprintPure)
@@ -58,6 +66,7 @@ public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const &DamageEvent, class AController *EventInstigator, AActor *DamageCauser) override;
 	
 	void Shoot();
+	void ReloadCurrentGun();
 	void ToggleAimMode();
 
 private:
