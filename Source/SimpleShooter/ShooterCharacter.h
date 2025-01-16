@@ -79,7 +79,7 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	float RecoilHandlingValue = 10;
 	
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere)
 	float MaxHealth = 100;
 
 	UPROPERTY(VisibleAnywhere)
